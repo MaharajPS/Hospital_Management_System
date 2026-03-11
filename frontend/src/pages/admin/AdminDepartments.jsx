@@ -142,31 +142,31 @@ const AdminDepartments = () => {
                                                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                                                     className="w-full px-3 py-2 border border-slate-600 rounded-md bg-slate-700 text-white focus:outline-none focus:ring-1 focus:ring-purple-500 focus:border-purple-500 sm:text-sm"
                                                 />
-                                        </div>
-                                        <div>
-                                            <label className="block text-sm font-medium text-slate-300 mb-1">Description</label>
-                                            <textarea
-                                                required
-                                                rows="3"
-                                                value={formData.description}
-                                                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                                                className="w-full px-3 py-2 border border-slate-600 rounded-md bg-slate-700 text-white focus:outline-none focus:ring-1 focus:ring-purple-500 focus:border-purple-500 sm:text-sm"
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="block text-sm font-medium text-slate-300 mb-1">Consultation Fee ($)</label>
-                                            <input
-                                                type="number"
-                                                step="0.01"
-                                                min="0"
-                                                required
-                                                value={formData.consultationFee}
-                                                onChange={(e) => setFormData({ ...formData, consultationFee: parseFloat(e.target.value) || 0 })}
-                                                className="w-full px-3 py-2 border border-slate-600 rounded-md bg-slate-700 text-white focus:outline-none focus:ring-1 focus:ring-purple-500 focus:border-purple-500 sm:text-sm"
-                                            />
+                                            </div>
+                                            <div>
+                                                <label className="block text-sm font-medium text-slate-300 mb-1">Description</label>
+                                                <textarea
+                                                    required
+                                                    rows="3"
+                                                    value={formData.description}
+                                                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                                                    className="w-full px-3 py-2 border border-slate-600 rounded-md bg-slate-700 text-white focus:outline-none focus:ring-1 focus:ring-purple-500 focus:border-purple-500 sm:text-sm"
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="block text-sm font-medium text-slate-300 mb-1">Consultation Fee ($)</label>
+                                                <input
+                                                    type="number"
+                                                    step="0.01"
+                                                    min="0"
+                                                    required
+                                                    value={formData.consultationFee}
+                                                    onChange={(e) => setFormData({ ...formData, consultationFee: parseFloat(e.target.value) || 0 })}
+                                                    className="w-full px-3 py-2 border border-slate-600 rounded-md bg-slate-700 text-white focus:outline-none focus:ring-1 focus:ring-purple-500 focus:border-purple-500 sm:text-sm"
+                                                />
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
                                 <div className="bg-slate-800/80 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse border-t border-slate-700">
                                     <button
                                         type="submit"
