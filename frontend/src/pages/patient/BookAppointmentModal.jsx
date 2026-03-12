@@ -1,168 +1,250 @@
-import { useState, useEffect } from 'react';
-import api from '../../api/axios';
-import { X, Calendar, Clock, Banknote } from 'lucide-react';
-import dayjs from 'dayjs';
+import { useState, useEffect } from "react";
+import api from "../../api/axios";
+import { X, Banknote } from "lucide-react";
+import dayjs from "dayjs";
 
 const BookAppointmentModal = ({ doctor, onClose }) => {
-    const [slots, setSlots] = useState([]);
-    const [selectedDate, setSelectedDate] = useState(dayjs().format('YYYY-MM-DD'));
-    const [selectedSlot, setSelectedSlot] = useState(null);
-    const [loading, setLoading] = useState(false);
-    const [booking, setBooking] = useState(false);
-    const [error, setError] = useState('');
-    const [success, setSuccess] = useState('');
 
-    useEffect(() => {
-        fetchSlots();
-    }, [selectedDate]);
+  const [slots, setSlots] = useState([]);
+  const [selectedDate, setSelectedDate] = useState(dayjs().format("YYYY-MM-DD"));
+  const [selectedSlot, setSelectedSlot] = useState(null);
 
-    const fetchSlots = async () => {
-        try {
-            setLoading(true);
-            const res = await api.get(`/doctors/${doctor.id}/slots?date=${selectedDate}`);
-            setSlots(res.data);
-        } catch (err) {
-            console.error(err);
-            setError('Failed to load slots');
-        } finally {
-            setLoading(false);
-        }
-    };
+  const [loading, setLoading] = useState(false);
+  const [booking, setBooking] = useState(false);
 
-    const handleBook = async () => {
-        if (!selectedSlot) return;
-        try {
-            setBooking(true);
-            setError('');
-            await api.post('/appointments/book', {
-                doctorId: doctor.id,
-                appointmentDate: selectedSlot.date,
-                startTime: selectedSlot.startTime,
-                endTime: selectedSlot.endTime
-            });
-            setSuccess('Appointment booked successfully!');
-            setTimeout(() => {
-                onClose();
-            }, 2000);
-        } catch (err) {
-            setError(err.response?.data?.error || 'Failed to book appointment');
-        } finally {
-            setBooking(false);
-        }
-    };
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
 
-    // Generate next 7 days for the date picker
-    const upcomingDays = Array.from({ length: 7 }).map((_, i) => dayjs().add(i, 'day').format('YYYY-MM-DD'));
+  useEffect(() => {
+    if (doctor?.id) {
+      fetchSlots();
+    }
+  }, [selectedDate]);
 
-    return (
-        <div className="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
-            <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-                <div className="fixed inset-0 bg-slate-900 bg-opacity-75 transition-opacity" aria-hidden="true" onClick={onClose}></div>
+  const fetchSlots = async () => {
+    try {
+      setLoading(true);
+      setError("");
 
-                <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+      const res = await api.get(
+        `/doctor/${doctor.id}/slots?date=${selectedDate}`
+      );
 
-                <div className="inline-block align-bottom bg-slate-800 rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full border border-slate-700">
-                    <div className="px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
-                        <div className="flex justify-between items-start">
-                            <div>
-                                <h3 className="text-xl leading-6 font-semibold text-white" id="modal-title">
-                                    Book Appointment
-                                </h3>
-                                <p className="mt-1 text-sm text-slate-400">
-                                    with Dr. {doctor.name} ({doctor.specialization})
-                                </p>
-                            </div>
-                            <button onClick={onClose} className="text-slate-400 hover:text-slate-200">
-                                <X className="h-6 w-6" />
-                            </button>
-                        </div>
+      if (Array.isArray(res.data)) {
+        setSlots(res.data);
+      } else if (Array.isArray(res.data.data)) {
+        setSlots(res.data.data);
+      } else {
+        setSlots([]);
+      }
 
-                        <div className="mt-6">
-                            {error && <div className="mb-4 bg-red-900/50 border border-red-500 text-red-200 px-3 py-2 rounded text-sm">{error}</div>}
-                            {success && <div className="mb-4 bg-green-900/50 border border-green-500 text-green-200 px-3 py-2 rounded text-sm">{success}</div>}
+    } catch (err) {
+      console.error(err);
+      setError("Failed to load slots");
+      setSlots([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-                            <div className="mb-4">
-                                <label className="block text-sm font-medium text-slate-300 mb-2">Select Date</label>
-                                <div className="flex space-x-2 overflow-x-auto pb-2 custom-scrollbar">
-                                    {upcomingDays.map((date) => (
-                                        <button
-                                            key={date}
-                                            onClick={() => setSelectedDate(date)}
-                                            className={`flex-shrink-0 px-4 py-2 rounded-md border text-sm font-medium ${selectedDate === date
-                                                ? 'bg-blue-600 border-blue-500 text-white'
-                                                : 'bg-slate-700 border-slate-600 text-slate-300 hover:bg-slate-600'
-                                                }`}
-                                        >
-                                            <div className="text-xs opacity-75">{dayjs(date).format('ddd')}</div>
-                                            <div>{dayjs(date).format('MMM D')}</div>
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
+  const handleBook = async () => {
 
-                            <div>
-                                <label className="block text-sm font-medium text-slate-300 mb-2">Available Time Slots</label>
-                                {loading ? (
-                                    <div className="text-center py-4 text-slate-400">Loading slots...</div>
-                                ) : slots.length > 0 ? (
-                                    <div className="grid grid-cols-3 gap-3">
-                                        {slots.filter(s => s.available).map((slot) => (
-                                            <button
-                                                key={slot.id}
-                                                onClick={() => setSelectedSlot(slot)}
-                                                className={`py-2 px-3 rounded-md text-sm font-medium flex items-center justify-center border ${selectedSlot?.id === slot.id
-                                                    ? 'bg-blue-600 border-blue-500 text-white'
-                                                    : 'bg-slate-700 border-slate-600 text-slate-300 hover:bg-slate-600'
-                                                    }`}
-                                            >
-                                                {slot.startTime.substring(0, 5)}
-                                            </button>
-                                        ))}
-                                        {slots.filter(s => s.available).length === 0 && (
-                                            <div className="col-span-3 text-center py-4 text-slate-400 bg-slate-800/50 rounded-md border border-slate-700">
-                                                No available slots for this date.
-                                            </div>
-                                        )}
-                                    </div>
-                                ) : (
-                                    <div className="text-center py-4 text-slate-400 bg-slate-800/50 rounded-md border border-slate-700 mt-2">
-                                        No slots scheduled for this date.
-                                    </div>
-                                )}
-                            </div>
+    if (!selectedSlot) return;
 
-                            <div className="mt-6 pt-4 border-t border-slate-700 flex justify-between items-center text-sm">
-                                <div className="flex items-center text-slate-300">
-                                    <Banknote className="h-4 w-4 mr-1 text-slate-400" />
-                                    Consultation Fee:
-                                </div>
-                                <div className="font-semibold text-white">
-                                    ${doctor.department?.consultationFee || '0.00'}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div className="bg-slate-800/80 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse border-t border-slate-700">
-                        <button
-                            type="button"
-                            disabled={!selectedSlot || booking || success}
-                            onClick={handleBook}
-                            className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 focus:ring-offset-slate-800 sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-50 transition-colors"
-                        >
-                            {booking ? 'Booking...' : 'Confirm Booking'}
-                        </button>
-                        <button
-                            type="button"
-                            onClick={onClose}
-                            className="mt-3 w-full inline-flex justify-center rounded-md border border-slate-600 shadow-sm px-4 py-2 bg-slate-700 text-base font-medium text-slate-300 hover:bg-slate-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-500 focus:ring-offset-slate-800 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm transition-colors"
-                        >
-                            Cancel
-                        </button>
-                    </div>
-                </div>
-            </div>
+    try {
+      setBooking(true);
+      setError("");
+
+      await api.post("/appointments/book", {
+        doctorId: doctor.id,
+        appointmentDate: selectedSlot.date,
+        startTime: selectedSlot.startTime,
+        endTime: selectedSlot.endTime
+      });
+
+      setSuccess("Appointment booked successfully!");
+
+      setTimeout(() => {
+        onClose();
+      }, 1500);
+
+    } catch (err) {
+      setError(err.response?.data?.message || "Failed to book appointment");
+    } finally {
+      setBooking(false);
+    }
+  };
+
+  const upcomingDays = Array.from({ length: 7 }).map((_, i) =>
+    dayjs().add(i, "day").format("YYYY-MM-DD")
+  );
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center">
+
+      {/* Overlay */}
+
+      <div
+        className="absolute inset-0 bg-black bg-opacity-60"
+        onClick={onClose}
+      ></div>
+
+      {/* Modal */}
+
+      <div
+        className="relative bg-slate-800 rounded-lg w-full max-w-lg p-6 border border-slate-700"
+        onClick={(e) => e.stopPropagation()}
+      >
+
+        {/* Header */}
+
+        <div className="flex justify-between items-center mb-4">
+
+          <div>
+            <h2 className="text-xl font-semibold text-white">
+              Book Appointment
+            </h2>
+
+            <p className="text-sm text-slate-400">
+              Dr. {doctor?.name} ({doctor?.specialization})
+            </p>
+          </div>
+
+          <button onClick={onClose}>
+            <X className="w-5 h-5 text-slate-400 hover:text-white" />
+          </button>
+
         </div>
-    );
+
+        {/* Error */}
+
+        {error && (
+          <div className="mb-3 text-red-400 text-sm">{error}</div>
+        )}
+
+        {success && (
+          <div className="mb-3 text-green-400 text-sm">{success}</div>
+        )}
+
+        {/* Date selector */}
+
+        <div className="mb-4">
+
+          <label className="text-sm text-slate-300">
+            Select Date
+          </label>
+
+          <div className="flex gap-2 mt-2 overflow-x-auto">
+
+            {upcomingDays.map((date) => (
+
+              <button
+                key={date}
+                onClick={() => {
+                  setSelectedDate(date);
+                  setSelectedSlot(null);
+                }}
+                className={`px-3 py-2 rounded border text-sm ${
+                  selectedDate === date
+                    ? "bg-blue-600 border-blue-500"
+                    : "bg-slate-700 border-slate-600"
+                }`}
+              >
+                {dayjs(date).format("MMM D")}
+              </button>
+
+            ))}
+
+          </div>
+
+        </div>
+
+        {/* Slots */}
+
+        <div>
+
+          <label className="text-sm text-slate-300">
+            Available Slots
+          </label>
+
+          {loading ? (
+
+            <p className="text-slate-400 mt-2">Loading...</p>
+
+          ) : slots.filter(s => s.available).length > 0 ? (
+
+            <div className="grid grid-cols-3 gap-2 mt-2">
+
+              {slots
+                .filter(s => s.available)
+                .map(slot => (
+
+                <button
+                  key={slot.id}
+                  onClick={() => setSelectedSlot(slot)}
+                  className={`py-2 rounded text-sm ${
+                    selectedSlot?.id === slot.id
+                      ? "bg-blue-600"
+                      : "bg-slate-700"
+                  }`}
+                >
+                  {slot.startTime?.substring(0,5)}
+                </button>
+
+              ))}
+
+            </div>
+
+          ) : (
+
+            <p className="text-slate-400 mt-2">
+              No slots available
+            </p>
+
+          )}
+
+        </div>
+
+        {/* Fee */}
+
+        <div className="mt-5 flex justify-between text-sm border-t border-slate-700 pt-3">
+
+          <span className="flex items-center text-slate-300">
+            <Banknote className="w-4 h-4 mr-1" />
+            Consultation Fee
+          </span>
+
+          <span className="text-white font-semibold">
+            ${doctor?.department?.consultationFee ?? "0.00"}
+          </span>
+
+        </div>
+
+        {/* Buttons */}
+
+        <div className="flex justify-end gap-3 mt-5">
+
+          <button
+            onClick={onClose}
+            className="px-4 py-2 bg-slate-600 rounded"
+          >
+            Cancel
+          </button>
+
+          <button
+            disabled={!selectedSlot || booking || success}
+            onClick={handleBook}
+            className="px-4 py-2 bg-blue-600 rounded disabled:opacity-50"
+          >
+            {booking ? "Booking..." : "Confirm"}
+          </button>
+
+        </div>
+
+      </div>
+
+    </div>
+  );
 };
 
 export default BookAppointmentModal;
