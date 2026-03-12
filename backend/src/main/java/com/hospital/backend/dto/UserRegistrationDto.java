@@ -1,6 +1,7 @@
 package com.hospital.backend.dto;
 
 import com.hospital.backend.enums.Role;
+
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -25,3 +26,5 @@ public class UserRegistrationDto {
     private String specialization;
     private Long departmentId;
 }
+
+

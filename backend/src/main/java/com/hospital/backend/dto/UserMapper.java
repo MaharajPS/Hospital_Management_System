@@ -8,15 +8,12 @@ import org.springframework.stereotype.Component;
 import com.hospital.backend.entity.Department;
 import com.hospital.backend.entity.User;
 
-import lombok.RequiredArgsConstructor;
-
 @Component
-@RequiredArgsConstructor
 public class UserMapper {
 
-    private final DepartmentMapper departmentMapper;
-
     public UserDto toDto(User user) {
+
+        if (user == null) return null;
 
         UserDto dto = new UserDto();
 
@@ -27,8 +24,10 @@ public class UserMapper {
         dto.setSpecialization(user.getSpecialization());
 
         if (user.getDepartment() != null) {
-            dto.setDepartmentId(user.getDepartment().getId());
-            dto.setDepartment(departmentMapper.toDto(user.getDepartment()));
+            DepartmentDto dept = new DepartmentDto();
+            dept.setId(user.getDepartment().getId());
+            dept.setName(user.getDepartment().getName());
+            dto.setDepartment(dept);
         }
 
         return dto;
@@ -40,16 +39,27 @@ public class UserMapper {
                 .collect(Collectors.toList());
     }
 
+    // Used by Admin create user
     public User toEntity(UserDto dto, Department department) {
 
         return User.builder()
-                .id(dto.getId())
+                .name(dto.getName())
+                .email(dto.getEmail())
+                .role(dto.getRole())
+                .specialization(dto.getSpecialization())
+                .department(department)
+                .build();
+    }
+
+    // ⭐ FIX: Used during registration
+    public User toEntity(UserRegistrationDto dto) {
+
+        return User.builder()
                 .name(dto.getName())
                 .email(dto.getEmail())
                 .password(dto.getPassword())
                 .role(dto.getRole())
                 .specialization(dto.getSpecialization())
-                .department(department)
                 .build();
     }
 }
