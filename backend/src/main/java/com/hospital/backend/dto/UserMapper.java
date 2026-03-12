@@ -1,21 +1,55 @@
 package com.hospital.backend.dto;
 
-import com.hospital.backend.entity.User;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-
 import java.util.List;
+import java.util.stream.Collectors;
 
-@Mapper(componentModel = "spring", uses = {DepartmentMapper.class})
-public interface UserMapper {
+import org.springframework.stereotype.Component;
 
-    UserDto toDto(User user);
-    
-    @Mapping(target = "id", ignore = true)
-    @Mapping(target = "createdAt", ignore = true)
-    @Mapping(target = "availableSlots", ignore = true)
-    @Mapping(target = "department", ignore = true)
-    User toEntity(UserRegistrationDto dto);
+import com.hospital.backend.entity.Department;
+import com.hospital.backend.entity.User;
 
-    List<UserDto> toDtoList(List<User> users);
+import lombok.RequiredArgsConstructor;
+
+@Component
+@RequiredArgsConstructor
+public class UserMapper {
+
+    private final DepartmentMapper departmentMapper;
+
+    public UserDto toDto(User user) {
+
+        UserDto dto = new UserDto();
+
+        dto.setId(user.getId());
+        dto.setName(user.getName());
+        dto.setEmail(user.getEmail());
+        dto.setRole(user.getRole());
+        dto.setSpecialization(user.getSpecialization());
+
+        if (user.getDepartment() != null) {
+            dto.setDepartmentId(user.getDepartment().getId());
+            dto.setDepartment(departmentMapper.toDto(user.getDepartment()));
+        }
+
+        return dto;
+    }
+
+    public List<UserDto> toDtoList(List<User> users) {
+        return users.stream()
+                .map(this::toDto)
+                .collect(Collectors.toList());
+    }
+
+    public User toEntity(UserDto dto, Department department) {
+
+        return User.builder()
+                .id(dto.getId())
+                .name(dto.getName())
+                .email(dto.getEmail())
+                .password(dto.getPassword())
+                .role(dto.getRole())
+                .specialization(dto.getSpecialization())
+                .department(department)
+                .build();
+    }
 }

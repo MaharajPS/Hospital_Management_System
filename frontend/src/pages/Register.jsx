@@ -9,9 +9,7 @@ const Register = () => {
         name: '',
         email: '',
         password: '',
-        role: 'PATIENT',
-        specialization: '',
-        departmentId: ''
+        role: 'PATIENT'
     });
 
     const [departments, setDepartments] = useState([]);
@@ -44,10 +42,7 @@ const Register = () => {
         setError('');
 
         const submitData = { ...formData };
-        if (submitData.role !== 'DOCTOR') {
-            delete submitData.specialization;
-            delete submitData.departmentId;
-        }
+        
 
         const result = await register(submitData);
         if (!result.success) {
@@ -121,9 +116,6 @@ const Register = () => {
                                 className="mt-1 block w-full pl-3 pr-10 py-2 border border-slate-600 bg-slate-700 text-slate-100 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md"
                             >
                                 <option value="PATIENT">Patient</option>
-                                <option value="DOCTOR">Doctor</option>
-                                {/* Admin accounts typically created manually, but for this demo: */}
-                                <option value="ADMIN">Admin</option>
                             </select>
                         </div>
 
